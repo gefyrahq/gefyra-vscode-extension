@@ -1,6 +1,7 @@
 /dist
 /tmp
 /out-tsc
+/out
 
 # Runtime data
 pids
@@ -86,3 +87,4 @@ lerna-debug.log
 # System Files
 .DS_Store
 Thumbs.db
+gefyra-json
