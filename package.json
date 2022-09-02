@@ -19,8 +19,25 @@
         "command": "gefyra.up",
         "title": "Gefyra Up"
       }
-    ]
-  },
+    ],
+	"viewsContainers": {
+		"activitybar": [
+			{
+				"id": "gefyra",
+				"title": "Gefyra",
+				"icon": "media/activitybar.svg"
+			}
+		]
+	},
+	"views": {
+		"gefyra": [
+			{
+				"id": "Gefyra",
+				"name": "gefyra"
+			}
+		]
+	}
+},
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
