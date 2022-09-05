@@ -2,24 +2,33 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { spawn } from 'child_process';
+import { gefyraClient, gefyraInstaller } from 'gefyra';
+
+
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-	console.log("ensure binary exists for correct platform; downloaded from GitHub release");
-	
-	console.log(context.extensionPath);
+	if (!gefyraInstaller.isInstalled()) {
+		vscode.window.showInformationMessage('Gefyra is going to install its backend. This takes about a minute...');
+		vscode.window.withProgress({
+			location: vscode.ProgressLocation.Window,
+			cancellable: false,
+			title: 'Installing Gefyra backend'
+		}, async (progress) => {
+			progress.report({  increment: 0 });
+			const installer = gefyraInstaller.install();
+			await installer;
+			vscode.window.showInformationMessage('Gefyra successfully installed.');
+			progress.report({ increment: 100 });
+		});
+	}
+
 	let disposable = vscode.commands.registerCommand('gefyra.up', () => {
-		
-		const gefyra = spawn(context.extensionPath + '/gefyra-json', ['{"action": "gefyra.status"}']);
-		gefyra.stdout.on("data", data => {
-			console.log(`stdout: ${data}`);
-		});
-		gefyra.on("error", data => {
-			console.error(data);
-		});
-		
-		vscode.window.showInformationMessage('Now starting Gefyra');
+		if (gefyraInstaller.isInstalled()) {
+			let status = gefyraClient.status();
+			vscode.window.showInformationMessage(`Gefyra status: ${status.status}`);
+		}
 	});
 
 	context.subscriptions.push(disposable);

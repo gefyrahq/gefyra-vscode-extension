@@ -10,6 +10,7 @@
     "Other"
   ],
   "activationEvents": [
+    "onView:gefyra",
     "onCommand:gefyra.up"
   ],
   "main": "./out/extension.js",
@@ -17,27 +18,38 @@
     "commands": [
       {
         "command": "gefyra.up",
-        "title": "Gefyra Up"
+        "title": "Gefyra Up",
+        "category": "Management"
+      },
+      {
+        "command": "gefyra.down",
+        "title": "Gefyra Down",
+        "category": "Management"
+      },
+      {
+        "command": "gefyra.status",
+        "title": "Gefyra Status",
+        "category": "Management"
       }
     ],
-	"viewsContainers": {
-		"activitybar": [
-			{
-				"id": "gefyra",
-				"title": "Gefyra",
-				"icon": "media/activitybar.svg"
-			}
-		]
-	},
-	"views": {
-		"gefyra": [
-			{
-				"id": "Gefyra",
-				"name": "gefyra"
-			}
-		]
-	}
-},
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "gefyra",
+          "title": "Gefyra",
+          "icon": "media/activitybar.svg"
+        }
+      ]
+    },
+    "views": {
+      "gefyra": [
+        {
+          "id": "gefyra",
+          "name": "Gefyra"
+        }
+      ]
+    }
+  },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
@@ -60,6 +72,7 @@
     "typescript": "^4.7.2"
   },
   "dependencies": {
-    "child_process": "^1.0.2"
+    "child_process": "^1.0.2",
+    "gefyra": "^0.0.12"
   }
 }
