@@ -24,14 +24,61 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 	}
 
-	let disposable = vscode.commands.registerCommand('gefyra.up', () => {
+	let up = vscode.commands.registerCommand('gefyra.up', () => {
 		if (gefyraInstaller.isInstalled()) {
-			let status = gefyraClient.status();
-			vscode.window.showInformationMessage(`Gefyra status: ${status.status}`);
+			vscode.window.showInformationMessage('Starting and connecting Gefyra. This takes a few seconds...');
+			vscode.window.withProgress({
+				location: vscode.ProgressLocation.Window,
+				cancellable: false,
+				title: 'Starting Gefyra'
+			}, async (progress) => {
+				progress.report({  increment: 0 });
+				let status = await gefyraClient.up();
+				progress.report({ increment: 100 });
+				if (status.success){
+					vscode.window.showInformationMessage('Gefyra is now running and connected.');
+				}
+				else {
+					vscode.window.showInformationMessage('There was an error starting Gefyra.');
+				}
+				
+			});	
 		}
 	});
+	context.subscriptions.push(up);
+	let down = vscode.commands.registerCommand('gefyra.down', () => {
+		if (gefyraInstaller.isInstalled()) {
+			vscode.window.showInformationMessage('Stopping Gefyra. This takes a few seconds...');
+			vscode.window.withProgress({
+				location: vscode.ProgressLocation.Window,
+				cancellable: false,
+				title: 'Stopping Gefyra'
+			}, async (progress) => {
+				progress.report({  increment: 0 });
+				let status = await gefyraClient.down();
+				progress.report({ increment: 100 });
+				if (status.success){
+					vscode.window.showInformationMessage('Gefyra is stopped.');
+				}
+				else {
+					vscode.window.showInformationMessage('There was an error stopping Gefyra.');
+				}
+				
+			});				
+		}
+	});
+	let status = vscode.commands.registerCommand('gefyra.status', () => {
+		if (gefyraInstaller.isInstalled()) {
+			let status = gefyraClient.status();
+			status.then((status) => {
+				vscode.window.showInformationMessage(`Gefyra status: ${status.status}`);
+			});
+			
+		}
+	});
+	context.subscriptions.push(status);
 
-	context.subscriptions.push(disposable);
+	
 }
 
 // this method is called when your extension is deactivated
