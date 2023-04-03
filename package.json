@@ -11,15 +11,39 @@
     "Debuggers",
     "Other"
   ],
-  "activationEvents": [
-    "onView:gefyra",
-    "onCommand:gefyra.up",
-    "onCommand:gefyra.down",
-    "onCommand:gefyra.status"
-  ],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": [
+      {
+        "id": "gefyra",
+        "title": "Gefyra",
+        "order": 1,
+        "properties": {
+          "gefyra.kubeconfig": {
+            "type": "object",
+            "order": 1,
+            "description": "Kubeconfig settings.",
+            "properties": {
+              "file": {
+                "type": "string",
+                "description": "Path to kubeconfig"
+              },
+              "context": {
+                "type": "string",
+                "description": "Selected context"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    ],
     "commands": [
+      {
+        "command": "gefyra.kubeconfig",
+        "title": "Kubeconfig",
+        "category": "Gefyra"
+      },
       {
         "command": "gefyra.up",
         "title": "Up",
