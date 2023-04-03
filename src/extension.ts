@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
 import { gefyraClient, gefyraInstaller } from "gefyra";
+import { GefyraUpRequest } from "gefyra/lib/protocol";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -27,17 +28,17 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   vscode.commands.registerCommand("gefyra.kubeconfig", async () => {
-    const target = await vscode.window.showQuickPick(
+    const selection = await vscode.window.showQuickPick(
       [
         {
-          label: "Automatic",
-          description: "Use local machine's kubeconfig and context",
-          target: "automatic",
+          label: "Default",
+          description: "Use default kubeconfig and context",
+          option: "default",
         },
         {
           label: "Manual",
           description: "Set a specific kubeconfig and context",
-          target: "manual",
+          option: "manual",
         },
       ],
       {
@@ -46,102 +47,261 @@ export function activate(context: vscode.ExtensionContext) {
       }
     );
 
-    if (target?.target === "automatic") {
-      // TODO: Implement automatic kubeconfig and context detection
-      vscode.window.showErrorMessage(
-        "Automatic kubeconfig and context detection is not yet implemented."
-      );
+    let file;
+    let context;
+
+    if (selection?.option === "default") {
+      // TODO: wait for gefyra-ext
+      vscode.window.showErrorMessage("Not yet implemented.");
       return;
     }
 
-    if (vscode.workspace.workspaceFolders === undefined) {
-      vscode.window.showInformationMessage(
-        "Manual kubeconfig and context selection requires an open workspace."
-      );
-      return;
+    if (selection?.option === "manual") {
+      if (vscode.workspace.workspaceFolders === undefined) {
+        vscode.window.showInformationMessage(
+          "Gefyra (Kubeconfig - Manual) requires an open workspace."
+        );
+        return;
+      }
+
+      file = await vscode.window.showInputBox({
+        prompt: "Kubeconfig",
+      });
+
+      context = await vscode.window.showInputBox({
+        prompt: "Context",
+      });
     }
 
-    const file = await vscode.window.showInputBox({
-      prompt: "Path to kubeconfig",
-    });
-
-    const context = await vscode.window.showInputBox({
-      prompt: "Context",
-    });
-
+    // save to workspace settings
     const configuration = vscode.workspace.getConfiguration();
     await configuration.update("gefyra.kubeconfig", {
       file: file,
       context: context,
     });
-
-    // const kubeconfig = configuration.get<{}>("gefyra.kubeconfig");
   });
 
-  let up = vscode.commands.registerCommand("gefyra.up", () => {
-    if (gefyraInstaller.isInstalled()) {
-      vscode.window.showInformationMessage(
-        "Starting and connecting Gefyra. This takes a few seconds..."
-      );
-      vscode.window.withProgress(
-        {
-          location: vscode.ProgressLocation.Window,
-          cancellable: false,
-          title: "Starting Gefyra",
-        },
-        async (progress) => {
-          progress.report({ increment: 0 });
-          let status = await gefyraClient.up();
-          progress.report({ increment: 100 });
-          if (status.success) {
-            vscode.window.showInformationMessage(
-              "Gefyra is now running and connected."
-            );
-          } else {
-            vscode.window.showInformationMessage(
-              "There was an error starting Gefyra."
-            );
-          }
-        }
-      );
+  let up = vscode.commands.registerCommand("gefyra.up", async () => {
+    if (!gefyraInstaller.isInstalled()) {
+      vscode.window.showInformationMessage("Gefyra is not installed.");
+      return;
     }
+
+    if (vscode.workspace.workspaceFolders === undefined) {
+      vscode.window.showInformationMessage(
+        "Gefyra (Up) requires an open workspace."
+      );
+      return;
+    }
+
+    const selection = await vscode.window.showQuickPick(
+      [
+        {
+          label: "Basic",
+          description: "configuration",
+          option: "basic",
+        },
+        {
+          label: "Advanced",
+          description: "configuration",
+          option: "advanced",
+        },
+        // TODO: wait for gefyra-ext (flags not yet implemented)
+        // {
+        //   label: "Expert",
+        //   description: "configuration",
+        //   option: "expert",
+        // },
+      ],
+      {
+        placeHolder: "Select configuration options",
+      }
+    );
+
+    const minikube = await vscode.window.showQuickPick(
+      [
+        {
+          label: "No",
+          option: false,
+        },
+        {
+          label: "Yes",
+          option: true,
+        },
+      ],
+      {
+        placeHolder: "Do you use Minikube?",
+      }
+    );
+
+    let host;
+    let port;
+
+    if (selection?.option === "advanced" || selection?.option === "expert") {
+      host = await vscode.window.showInputBox({
+        title: "-H, --host",
+        prompt: "Host address for Gefyra to connect to. ",
+      });
+
+      port = await vscode.window.showInputBox({
+        title: "-P, --port",
+        prompt: "Port on the for Gefyra to connect to. ",
+        value: "31280",
+      });
+    }
+
+    if (port !== undefined) {
+      port = +port;
+    }
+
+    const configuration = vscode.workspace.getConfiguration();
+    const kubeconfig = configuration.get("gefyra.kubeconfig");
+
+    const request = new GefyraUpRequest();
+    request.host = host;
+    request.port = port;
+    request.minikube = minikube?.option;
+    request.kubeconfig = kubeconfig?.file;
+    request.context = kubeconfig?.context;
+
+    vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: "Gefyra (Up)",
+        cancellable: false,
+      },
+      async (progress) => {
+        progress.report({
+          increment: 0,
+          message: "This takes a few seconds...",
+        });
+
+        let status = await gefyraClient.up();
+
+        if (status.success) {
+          var message = "Done.";
+        } else {
+          var message = "Failed!";
+          vscode.window.showErrorMessage("Gefyra (Up): Something went wrong.");
+        }
+
+        progress.report({
+          increment: 100,
+          message: message,
+        });
+
+        const p = new Promise<void>((resolve) => {
+          setTimeout(() => {
+            resolve();
+          }, 3000);
+        });
+        return p;
+      }
+    );
   });
   context.subscriptions.push(up);
 
   let down = vscode.commands.registerCommand("gefyra.down", () => {
-    if (gefyraInstaller.isInstalled()) {
-      vscode.window.showInformationMessage(
-        "Stopping Gefyra. This takes a few seconds..."
-      );
-      vscode.window.withProgress(
-        {
-          location: vscode.ProgressLocation.Window,
-          cancellable: false,
-          title: "Stopping Gefyra",
-        },
-        async (progress) => {
-          progress.report({ increment: 0 });
-          let status = await gefyraClient.down();
-          progress.report({ increment: 100 });
-          if (status.success) {
-            vscode.window.showInformationMessage("Gefyra is stopped.");
-          } else {
-            vscode.window.showInformationMessage(
-              "There was an error stopping Gefyra."
-            );
-          }
-        }
-      );
+    if (!gefyraInstaller.isInstalled()) {
+      vscode.window.showInformationMessage("Gefyra is not installed.");
+      return;
     }
+
+    vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: "Gefyra (Down)",
+        cancellable: false,
+      },
+      async (progress) => {
+        progress.report({
+          increment: 0,
+          message: "This takes a few seconds...",
+        });
+
+        let status = await gefyraClient.down();
+
+        if (status.success) {
+          var message = "Done.";
+        } else {
+          var message = "Failed!";
+          vscode.window.showErrorMessage(
+            "Gefyra (Down): Something went wrong."
+          );
+        }
+
+        progress.report({
+          increment: 100,
+          message: message,
+        });
+
+        const p = new Promise<void>((resolve) => {
+          setTimeout(() => {
+            resolve();
+          }, 3000);
+        });
+        return p;
+      }
+    );
   });
+  context.subscriptions.push(down);
+
+  let run = vscode.commands.registerCommand("gefyra.run", () => {
+    if (!gefyraInstaller.isInstalled()) {
+      vscode.window.showInformationMessage("Gefyra is not installed.");
+      return;
+    }
+
+    vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: "Gefyra (Run)",
+        cancellable: false,
+      },
+      async (progress) => {
+        progress.report({
+          increment: 0,
+          message: "This takes a few seconds...",
+        });
+
+        // const kubeconfig = configuration.get<{}>("gefyra.kubeconfig");
+        // let status = await gefyraClient.run();
+
+        if (false) {
+          var message = "Done.";
+        } else {
+          var message = "Failed!";
+          vscode.window.showErrorMessage("Gefyra (Run): Something went wrong.");
+        }
+
+        progress.report({
+          increment: 100,
+          message: message,
+        });
+
+        const p = new Promise<void>((resolve) => {
+          setTimeout(() => {
+            resolve();
+          }, 3000);
+        });
+        return p;
+      }
+    );
+  });
+  context.subscriptions.push(run);
 
   let status = vscode.commands.registerCommand("gefyra.status", () => {
-    if (gefyraInstaller.isInstalled()) {
-      let status = gefyraClient.status();
-      status.then((status) => {
-        vscode.window.showInformationMessage(`Gefyra status: ${status.status}`);
-      });
+    if (!gefyraInstaller.isInstalled()) {
+      vscode.window.showInformationMessage("Gefyra is not installed.");
+      return;
     }
+
+    let status = gefyraClient.status();
+    status.then((status) => {
+      vscode.window.showInformationMessage(
+        `Gefyra (Status): ${status.response.summary}`
+      );
+    });
   });
   context.subscriptions.push(status);
 }

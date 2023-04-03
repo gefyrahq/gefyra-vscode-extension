@@ -55,6 +55,11 @@
         "category": "Gefyra"
       },
       {
+        "command": "gefyra.run",
+        "title": "Run",
+        "category": "Gefyra"
+      },
+      {
         "command": "gefyra.status",
         "title": "Status",
         "category": "Gefyra"
@@ -101,6 +106,6 @@
   },
   "dependencies": {
     "child_process": "^1.0.2",
-    "gefyra": "^0.0.13"
+    "gefyra": "^0.6.4"
   }
 }
