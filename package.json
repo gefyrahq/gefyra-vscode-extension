@@ -106,6 +106,6 @@
   },
   "dependencies": {
     "child_process": "^1.0.2",
-    "gefyra": "^0.6.4"
+    "gefyra": "^0.7.0"
   }
 }
