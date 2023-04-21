@@ -34,6 +34,41 @@
               }
             },
             "additionalProperties": false
+          },
+          "gefyra.up": {
+            "type": "object",
+            "order": 2,
+            "description": "Up settings.",
+            "properties": {
+              "host": {
+                "type": "string"
+              },
+              "port": {
+                "type": "number"
+              },
+              "minikube": {
+                "type": "boolean"
+              },
+              "operatorImage": {
+                "type": "string"
+              },
+              "stowawayImage": {
+                "type": "string"
+              },
+              "carrierImage": {
+                "type": "string"
+              },
+              "cargoImage": {
+                "type": "string"
+              },
+              "registryUrl": {
+                "type": "string"
+              },
+              "wireguardMTU": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
           }
         }
       }
@@ -106,6 +141,6 @@
   },
   "dependencies": {
     "child_process": "^1.0.2",
-    "gefyra": "^0.7.0"
+    "gefyra": "^0.7.1"
   }
 }
