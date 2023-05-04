@@ -2,7 +2,7 @@
   "name": "gefyra",
   "displayName": "Gefyra",
   "description": "Blazingly-fast, rock-solid, local application development with Kubernetes",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "Blueshoe",
   "preview": true,
   "engines": {
