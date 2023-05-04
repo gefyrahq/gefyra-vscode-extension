@@ -3,6 +3,8 @@
   "displayName": "Gefyra",
   "description": "Blazingly-fast, rock-solid, local application development with Kubernetes",
   "version": "0.0.1",
+  "publisher": "Blueshoe",
+  "preview": true,
   "engines": {
     "vscode": "^1.71.0"
   },
@@ -11,6 +13,8 @@
     "Debuggers",
     "Other"
   ],
+  "license": "SEE LICENSE IN LICENSE",
+  "homepage": "https://gefyra.dev",
   "main": "./out/extension.js",
   "contributes": {
     "configuration": [
@@ -118,6 +122,15 @@
       ]
     }
   },
+  "repository": {
+    "url": "https://github.com/gefyrahq/gefyra-vscode-extension/",
+    "type": "git"
+  },
+  "bugs": {
+    "url": "https://github.com/gefyrahq/gefyra-vscode-extension/issues/"
+  },
+  "icon": "media/gefyra-icon.png",
+  "activationEvents": [],
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
@@ -126,6 +139,7 @@
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js"
   },
+  "pricing": "Free",
   "devDependencies": {
     "@types/glob": "^7.2.0",
     "@types/mocha": "^9.1.1",
