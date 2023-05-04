@@ -212,7 +212,6 @@ function activate(context) {
             // load from workspace settings
             host = workspaceUp?.host;
             port = workspaceUp?.port;
-            minikube = workspaceUp?.minikube;
             operatorImage = workspaceUp?.operatorImage;
             stowawayImage = workspaceUp?.stowawayImage;
             carrierImage = workspaceUp?.carrierImage;

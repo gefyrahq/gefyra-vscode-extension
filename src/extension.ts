@@ -84,7 +84,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     const request = new K8sContextRequest();
-    request.kubeconfig = file;
+    request.kubeconfig = file as string;
 
     let contextResponse = await gefyraClient.k8sContexts(request);
     const contextSelection = await vscode.window.showQuickPick(
@@ -124,8 +124,8 @@ export function activate(context: vscode.ExtensionContext) {
 
     // workspace settings
     const configuration = vscode.workspace.getConfiguration();
-    const workspaceKubeconfig = configuration.get("gefyra.kubeconfig");
-    const workspaceUp = configuration.get("gefyra.up");
+    const workspaceKubeconfig = configuration.get("gefyra.kubeconfig") as any;
+    const workspaceUp = configuration.get("gefyra.up") as any;
 
     // options
     var options = [
@@ -267,7 +267,6 @@ export function activate(context: vscode.ExtensionContext) {
       // load from workspace settings
       host = workspaceUp?.host;
       port = workspaceUp?.port;
-      minikube = workspaceUp?.minikube;
       operatorImage = workspaceUp?.operatorImage;
       stowawayImage = workspaceUp?.stowawayImage;
       carrierImage = workspaceUp?.carrierImage;

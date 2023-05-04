@@ -26,7 +26,7 @@ bower_components
 
 # node-waf configuration
 .lock-wscript
-
+*.vsix
 # IDEs and editors
 .idea
 .project
