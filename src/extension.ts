@@ -2,11 +2,9 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
 import { gefyraClient, gefyraInstaller } from "gefyra";
-import {
-  GefyraRunRequest,
-  GefyraUpRequest,
-  K8sContextRequest,
-} from "gefyra/lib/protocol";
+import { GefyraUpRequest, K8sContextRequest } from "gefyra/lib/protocol";
+
+import { runInput } from "./run";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -378,111 +376,27 @@ export function activate(context: vscode.ExtensionContext) {
       return;
     }
 
-    const image = await vscode.window.showInputBox({
-      prompt: "image",
-    });
-    if (image === undefined) {
-      vscode.window.showInformationMessage("Image is required.");
+    if (vscode.workspace.workspaceFolders === undefined) {
+      vscode.window.showInformationMessage(
+        "Gefyra (Run) requires an open workspace."
+      );
       return;
     }
 
-    const name = await vscode.window.showInputBox({
-      prompt: "name",
-    });
+    await runInput(context);
+    return;
 
-    const command = await vscode.window.showInputBox({
-      prompt: "command",
-    });
-
-    const detach = await vscode.window.showQuickPick(
-      [
-        {
-          label: "No",
-          option: false,
-        },
-        {
-          label: "Yes",
-          option: true,
-        },
-      ],
-      {
-        placeHolder: "detach",
-      }
-    );
-
-    const autoremove = await vscode.window.showQuickPick(
-      [
-        {
-          label: "No",
-          option: false,
-        },
-        {
-          label: "Yes",
-          option: true,
-        },
-      ],
-      {
-        placeHolder: "autoremove",
-      }
-    );
-
-    const namespace = await vscode.window.showInputBox({
-      prompt: "namespace",
-    });
-
-    const envfrom = await vscode.window.showInputBox({
-      prompt: "envfrom",
-    });
-
-    const request = new GefyraRunRequest();
-    request.image = image;
-    request.name = name;
-    request.command = command;
-    // // volumes and ports are tbd
-    // volumes?: string[];
-    // ports?: { [key: string]: string };
-    request.detach = detach?.option;
-    request.autoremove = autoremove?.option;
-    request.namespace = namespace;
-    // env?: string[];
-    request.envfrom = envfrom;
-
-    vscode.window.withProgress(
-      {
-        location: vscode.ProgressLocation.Notification,
-        title: "Gefyra (Run)",
-        cancellable: false,
-      },
-      async (progress) => {
-        progress.report({
-          increment: 0,
-          message: "This takes a few seconds...",
-        });
-
-        // const kubeconfig = configuration.get<{}>("gefyra.kubeconfig");
-        let status = await gefyraClient.run(request).catch((err) => {
-          try {
-            var message = String(JSON.parse(err.stdout).reason);
-          } catch {
-            var message = "Something went wrong.";
-          }
-
-          vscode.window.showErrorMessage("Gefyra (Run): " + message);
-          return { success: false };
-        });
-
-        progress.report({
-          increment: 100,
-          message: status.success ? "Done." : "Failed!",
-        });
-        const p = new Promise<void>((resolve) => {
-          setTimeout(() => {
-            resolve();
-          }, 3000);
-        });
-        return p;
-      }
-    );
+    //   image = workspaceRun[0].image;
+    //   name = workspaceRun[0].name;
+    //   command = workspaceRun[0].command;
+    //   volumes = workspaceRun[0].volumes;
+    //   ports = workspaceRun[0].ports;
+    //   detach = workspaceRun[0].detach;
+    //   autoremove = workspaceRun[0].autoremove;
+    //   namespace = workspaceRun[0].namespace;
+    //   env = workspaceRun[0].env;
+    //   envfrom = workspaceRun[0].envfrom;
+    // }
   });
   context.subscriptions.push(run);
 
